@@ -44,14 +44,14 @@ export const Footer = () => {
           <h4 className="font-semibold text-white mb-4">Contact</h4>
           <ul className="space-y-2 text-sm">
             <li>hello@sheggarwheels.example</li>
-            <li>+251 11 000 0000</li>
+            <li>+251 964 837 635</li>
             <li>Bole, Addis Ababa</li>
           </ul>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
-        © 2026 Sheggar Wheels. Capstone demo project — no real payments, tracking or bookings.
+        © 2026 Sheggar Wheels. Peer-to-peer car rentals in Addis Ababa.
       </div>
     </footer>
   );

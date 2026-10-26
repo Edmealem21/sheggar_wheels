@@ -1,23 +1,39 @@
 "use client";
 import { useEffect, useState } from "react";
 import { readStorage, writeStorage } from "@/lib/storage";
+import { getSession } from "@/lib/auth";
 import { Car } from "@/types";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
 
 export default function OwnerCars() {
   const [cars, setCars] = useState<Car[]>([]);
 
+  const loadCars = () => {
+    const user = getSession();
+    if (user) {
+      const allCars = readStorage<Car[]>("sw_cars_v1", []);
+      setCars(allCars.filter(c => c.ownerId === user.id));
+    }
+  };
+
   useEffect(() => {
-    const allCars = readStorage<Car[]>("sw_cars_v1", []);
-    setCars(allCars.filter(c => c.ownerId === "owner-1"));
+    loadCars();
   }, []);
 
-  const deactivateCar = (id: string) => {
+  // Toggle between Active and Inactive
+  const handleToggleStatus = (id: string, currentStatus: string) => {
     const allCars = readStorage<Car[]>("sw_cars_v1", []);
-    const updated = allCars.map(c => c.id === id ? { ...c, status: "inactive" as const } : c);
+    
+    // In a real app, activating might require admin approval again (pending).
+    // For this demo, we'll toggle directly between approved and inactive.
+    const newStatus = currentStatus === "inactive" ? "approved" : "inactive";
+    
+    const updated = allCars.map(c => 
+      c.id === id ? { ...c, status: newStatus as Car["status"] } : c
+    );
+    
     writeStorage("sw_cars_v1", updated);
-    setCars(updated.filter(c => c.ownerId === "owner-1"));
+    loadCars(); // Reload the list to show the new status
   };
 
   return (
@@ -44,7 +60,7 @@ export default function OwnerCars() {
             {cars.map(car => (
               <tr key={car.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 flex items-center gap-3">
-                  <div className="w-12 h-10 rounded bg-gray-200 overflow-hidden">
+                  <div className="w-12 h-10 rounded bg-gray-200 overflow-hidden flex-shrink-0">
                     <img src={car.photos[0]} className="w-full h-full object-cover" />
                   </div>
                   <div>
@@ -56,16 +72,28 @@ export default function OwnerCars() {
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${
                     car.status === "approved" ? "bg-green-100 text-green-700" : 
-                    car.status === "pending" ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-600"
+                    car.status === "pending" ? "bg-orange-100 text-orange-700" : 
+                    "bg-gray-100 text-gray-600"
                   }`}>
                     ● {car.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">Open for booking</td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  {car.status === "approved" ? "Open for booking" : "Not available"}
+                </td>
                 <td className="px-6 py-4 text-sm space-x-3">
                   <Link href={`/cars/${car.id}`} className="text-blue-600 font-medium hover:underline">View</Link>
-                  <button className="text-blue-600 font-medium hover:underline">Edit</button>
-                  <button onClick={() => deactivateCar(car.id)} className="text-red-600 font-medium hover:underline">Deactivate</button>
+                  
+                  {/* Working Edit Link */}
+                  <Link href={`/dashboard/owner/cars/${car.id}/edit`} className="text-blue-600 font-medium hover:underline">Edit</Link>
+                  
+                  {/* Working Toggle Button */}
+                  <button 
+                    onClick={() => handleToggleStatus(car.id, car.status)} 
+                    className={`font-medium hover:underline ${car.status === "inactive" ? "text-red-600" : "text-green-600" }`}
+                  >
+                    {car.status === "inactive" ? "Deactivate" : "Activate"}
+                  </button>
                 </td>
               </tr>
             ))}

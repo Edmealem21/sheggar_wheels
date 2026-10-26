@@ -26,6 +26,17 @@ export const signInAsDemo = (userId: string) => {
   sessionStorage.setItem("sw_session_v1", userId);
   localStorage.setItem("sw_session_v1_fallback", userId);
   
+  // 1. Check if there is a 'next' parameter in the URL (e.g., /signin?next=/checkout?carId=1)
+  const urlParams = new URLSearchParams(window.location.search);
+  const next = urlParams.get("next");
+
+  // 2. Safely redirect if 'next' exists and is a safe internal path (starts with '/' but not '//')
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    window.location.href = next;
+    return;
+  }
+  
+  // 3. Fallback to default role-based dashboards
   if (userId === "admin-1") {
     window.location.href = "/dashboard/admin";
   } else if (userId === "owner-1") {

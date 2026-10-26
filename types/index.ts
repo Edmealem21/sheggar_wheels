@@ -45,3 +45,15 @@ export interface Announcement {
   active: boolean;
   createdAt: string;
 }
+export interface Review {
+  id: string;
+  bookingId: string;
+  carId: string;
+  renterId: string;
+  renterName: string; // Added for easy display
+  ownerId: string;
+  rating: number;
+  comment: string;
+  ownerReply: string | null;
+  createdAt: string;
+}

@@ -21,11 +21,11 @@ export default function LandingPage() {
   useEffect(() => {
     seedData();
     const allCars = readStorage<Car[]>("sw_cars_v1", []);
-    setCars(allCars.filter(c => c.status === "approved").slice(0, 4));
+    // Changed from .slice(0, 4) to .slice(0, 3)
+    setCars(allCars.filter(c => c.status === "approved").slice(0, 3));
   }, []);
 
   const handleSearch = () => {
-    // Pass the search query to the catalogue page
     router.push(`/cars?query=${encodeURIComponent(searchQuery)}&start=${pickupDate}&end=${returnDate}`);
   };
 
@@ -74,13 +74,21 @@ export default function LandingPage() {
               <label className="text-xs font-semibold text-gray-500 mb-1">Search by car name</label>
               <div className="flex items-center gap-2">
                 <Search className="text-gray-400 w-4 h-4" />
-                <input 
-                  type="text" 
-                  placeholder="e.g. Toyota Corolla"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full outline-none text-gray-900 text-sm bg-transparent font-medium placeholder:font-normal" 
-                />
+
+
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Toyota Corolla"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    // ADD THIS ONKEYDOWN EVENT:
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearch();
+                      }
+                    }}
+                    className="w-full outline-none text-gray-900 text-sm bg-transparent font-medium placeholder:font-normal focus:ring-2 focus:ring-blue-500 rounded px-1" 
+                  />
               </div>
             </div>
 
@@ -149,33 +157,35 @@ export default function LandingPage() {
           <Link href="/cars" className="text-blue-600 font-medium text-sm hover:underline">View all cars &rarr;</Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Changed to lg:grid-cols-3 to show only 3 cars on large screens */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cars.map((car, index) => (
-            <div key={car.id} className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-              <div className="h-40 bg-gray-200 relative">
+            // Increased shadow: shadow-xl hover:shadow-2xl
+            <div key={car.id} className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col">
+              <div className="h-48 bg-gray-200 relative">
                 <img src={car.photos[0]} alt={car.model} className="w-full h-full object-cover" />
               </div>
-              <div className="p-4 flex-1 flex flex-col">
+              <div className="p-5 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-1">
-                  <h3 className="font-bold text-gray-900">{car.make} {car.model}</h3>
+                  <h3 className="font-bold text-lg text-gray-900">{car.make} {car.model}</h3>
                   <div className="flex items-center gap-1 text-xs font-medium text-gray-600">
-                    <Star className="w-3.5 h-3.5 fill-orange-400 text-orange-400" /> {mockRatings[index]}
+                    <Star className="w-4 h-4 fill-orange-400 text-orange-400" /> {mockRatings[index]}
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mb-2">{car.year}</p>
-                <p className="text-xs text-gray-500 flex items-center gap-1 mb-2">
-                  <MapPin className="w-3 h-3" /> {car.neighbourhood}, {car.city}
+                <p className="text-sm text-gray-500 flex items-center gap-1 mb-3">
+                  <MapPin className="w-3.5 h-3.5" /> {car.neighbourhood}, {car.city}
                 </p>
-                <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
-                  <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {car.seats} seats</span>
-                  <span className="flex items-center gap-1"><Settings2 className="w-3.5 h-3.5" /> {car.transmission}</span>
+                <div className="flex items-center gap-4 text-xs text-gray-500 mb-5">
+                  <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {car.seats} seats</span>
+                  <span className="flex items-center gap-1"><Settings2 className="w-4 h-4" /> {car.transmission}</span>
                 </div>
-                <div className="mt-auto flex items-center justify-between pt-2 border-t border-gray-100">
+                <div className="mt-auto flex items-center justify-between pt-3 border-t border-gray-100">
                   <div>
-                    <span className="font-bold text-gray-900 text-lg">ETB {car.pricePerDay.toLocaleString()}</span>
+                    <span className="font-bold text-gray-900 text-xl">ETB {car.pricePerDay.toLocaleString()}</span>
                     <span className="text-xs text-gray-500"> / day</span>
                   </div>
-                  <Link href={`/cars/${car.id}`} className="border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-xs font-medium hover:bg-gray-50 transition-colors">
+                  <Link href={`/cars/${car.id}`} className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
                     View details
                   </Link>
                 </div>
