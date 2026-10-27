@@ -77,7 +77,7 @@ export default function CarDetails() {
               <Button className="w-full py-3 text-lg" onClick={() => router.push(`/checkout?carId=${car.id}`)}>
                 Request Booking
               </Button>
-              <p className="text-center text-xs text-gray-400 mt-4">You won't be charged yet.</p>
+              <p className="text-center text-xs text-gray-400 mt-4">You won&apos;t be charged yet.</p>
             </div>
           </div>
         </div>

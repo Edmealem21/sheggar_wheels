@@ -32,7 +32,7 @@ export default function AdminDisputes() {
           </div>
         ) : (
           <div className="bg-green-50 text-green-700 p-4 rounded-lg text-sm border border-green-200">
-            This dispute has been successfully resolved. Note: "Owner and renter agreed to split the refueling cost."
+            This dispute has been successfully resolved. Note: Note: &quot;Owner and renter agreed to split the refueling cost.&quot;
           </div>
         )}
       </div>

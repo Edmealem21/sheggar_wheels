@@ -46,7 +46,7 @@ export default function TripHistory() {
               <History className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-bold text-gray-900 mb-1">No trip history yet</h3>
-            <p className="text-gray-500 mb-6 text-sm">You haven't completed any trips so far.</p>
+            <p className="text-gray-500 mb-6 text-sm">You haven&apos;t completed any trips so far.</p>
             <Link href="/cars" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
               Find a car to rent
             </Link>

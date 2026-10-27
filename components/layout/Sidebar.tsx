@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, KeyboardEvent } from "react";
 import { Car, LayoutDashboard, Users, CalendarCheck, AlertCircle, BarChart3, Megaphone, LogOut, PlusCircle, Wallet, Star, Bell, History, User, X } from "lucide-react";
 import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,56 @@ interface SidebarProps {
 
 export const Sidebar = ({ role, isOpen, setIsOpen }: SidebarProps) => {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Close sidebar on Escape key
+  useEffect(() => {
+    const handleEscape = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isOpen, setIsOpen]);
+
+  // --- KEYBOARD NAVIGATION LOGIC ---
+  const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (!["ArrowDown", "ArrowUp", "ArrowLeft"].includes(e.key)) return;
+
+    // Close sidebar on ArrowLeft (like a back gesture on mobile)
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      if (isOpen) setIsOpen(false);
+      return;
+    }
+
+    e.preventDefault(); // Stop page scrolling
+
+    const nav = navRef.current;
+    if (!nav) return;
+
+    // Get all focusable elements inside the navigation
+    const focusableElements = Array.from(
+      nav.querySelectorAll("a, button")
+    ) as HTMLElement[];
+
+    const currentIndex = focusableElements.indexOf(document.activeElement as HTMLElement);
+    if (currentIndex === -1) return;
+
+    let nextIndex = currentIndex;
+
+    if (e.key === "ArrowDown") {
+      nextIndex = currentIndex + 1;
+      if (nextIndex >= focusableElements.length) nextIndex = 0; // Loop to start
+    } else if (e.key === "ArrowUp") {
+      nextIndex = currentIndex - 1;
+      if (nextIndex < 0) nextIndex = focusableElements.length - 1; // Loop to end
+    }
+
+    focusableElements[nextIndex].focus();
+  };
+  // ---------------------------------
 
   const menus = {
     admin: [
@@ -54,10 +105,13 @@ export const Sidebar = ({ role, isOpen, setIsOpen }: SidebarProps) => {
         />
       )}
 
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out",
-        isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}>
+      <aside 
+        onKeyDown={handleKeyDown}
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out",
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
+      >
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-2 rounded-lg">
@@ -69,12 +123,15 @@ export const Sidebar = ({ role, isOpen, setIsOpen }: SidebarProps) => {
             </div>
           </div>
           {/* Mobile Close Button */}
-          <button onClick={() => setIsOpen(false)} className="lg:hidden text-gray-500 hover:text-gray-900">
+          <button 
+            onClick={() => setIsOpen(false)} 
+            className="lg:hidden text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1 mt-2 overflow-y-auto">
+        <nav ref={navRef} className="flex-1 px-4 space-y-1 mt-2 overflow-y-auto">
           {currentMenu.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -83,7 +140,7 @@ export const Sidebar = ({ role, isOpen, setIsOpen }: SidebarProps) => {
                 href={item.href}
                 onClick={() => setIsOpen(false)} // Close sidebar on link click (mobile)
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
                   isActive ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 )}
               >
@@ -95,7 +152,10 @@ export const Sidebar = ({ role, isOpen, setIsOpen }: SidebarProps) => {
         </nav>
 
         <div className="p-4 border-t border-gray-200">
-          <button onClick={signOut} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 w-full">
+          <button 
+            onClick={signOut} 
+            className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 w-full rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <LogOut className="w-5 h-5" />
             Sign out
           </button>

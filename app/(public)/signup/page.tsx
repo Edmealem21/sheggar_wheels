@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { readStorage, writeStorage } from "@/lib/storage";
 import { User } from "@/types";
@@ -9,8 +9,37 @@ import { Car } from "lucide-react";
 export default function SignUp() {
   const router = useRouter();
   const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+  const [isHost, setIsHost] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // --- KEYBOARD NAVIGATION LOGIC ---
+  const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault(); // Stop the page from scrolling
+      
+      const form = e.currentTarget.closest("form");
+      if (!form) return;
+
+      // Get all focusable elements inside the form
+      const elements = Array.from(form.elements) as HTMLElement[];
+      const index = elements.indexOf(e.currentTarget);
+
+      let nextElement: HTMLElement | null = null;
+
+      if (e.key === "ArrowDown") {
+        nextElement = elements[index + 1];
+      } else if (e.key === "ArrowUp") {
+        nextElement = elements[index - 1];
+      }
+
+      // Move focus if the next element exists
+      if (nextElement) {
+        nextElement.focus();
+      }
+    }
+  };
+  // ---------------------------------
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,12 +61,14 @@ export default function SignUp() {
         return;
       }
 
+      const roles = isHost ? (["renter", "owner"] as const) : (["renter"] as const);
+
       const newUser: User = {
         id: crypto.randomUUID(),
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        roles: ["renter"], // Default role for sign up
+        roles: [...roles],
         status: "Active",
         createdAt: new Date().toISOString()
       };
@@ -45,8 +76,11 @@ export default function SignUp() {
       writeStorage("sw_users_v1", [...users, newUser]);
       sessionStorage.setItem("sw_session_v1", newUser.id);
       
-      // Redirect to renter dashboard after successful signup
-      router.push("/dashboard/renter");
+      if (isHost) {
+        router.push("/dashboard/owner");
+      } else {
+        router.push("/dashboard/renter");
+      }
     } catch (err) {
       setError("An error occurred. Please try again.");
       setLoading(false);
@@ -57,14 +91,12 @@ export default function SignUp() {
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* Left Panel - Image & Branding */}
       <div className="relative hidden lg:flex flex-col justify-between bg-slate-900 p-10 overflow-hidden">
-        {/* Background Image */}
         <img 
           src="https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop" 
           alt="Car driving on mountain road" 
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         />
         
-        {/* Logo - Top Left */}
         <Link href="/" className="relative z-10 flex items-center gap-2 w-fit">
           <div className="bg-blue-600 p-1.5 rounded-md">
             <Car className="text-white w-5 h-5" />
@@ -72,7 +104,6 @@ export default function SignUp() {
           <span className="font-bold text-white text-lg tracking-wide">Sheggar Wheels</span>
         </Link>
 
-        {/* Bottom Text */}
         <div className="relative z-10 mb-6">
           <div className="w-12 h-1 bg-orange-400 mb-6"></div>
           <h1 className="text-4xl font-bold text-white max-w-md leading-tight">
@@ -87,7 +118,7 @@ export default function SignUp() {
           
           <div className="mb-8">
             <h2 className="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">Create your account</h2>
-            <p className="text-gray-500 text-[15px]">Join as a renter. You can request to host later.</p>
+            <p className="text-gray-500 text-[15px]">Join the marketplace. You can always add more roles later.</p>
           </div>
 
           {error && (
@@ -103,7 +134,8 @@ export default function SignUp() {
                 type="text" 
                 placeholder="Meron Alemu" 
                 onChange={e => setFormData({...formData, name: e.target.value})} 
-                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 text-[15px] placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm" 
+                onKeyDown={handleKeyDown} // <-- ADDED KEYBOARD NAV
+                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 text-[15px] placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm" 
               />
             </div>
             
@@ -113,7 +145,8 @@ export default function SignUp() {
                 type="email" 
                 placeholder="you@example.com" 
                 onChange={e => setFormData({...formData, email: e.target.value})} 
-                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 text-[15px] placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm" 
+                onKeyDown={handleKeyDown} // <-- ADDED KEYBOARD NAV
+                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 text-[15px] placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm" 
               />
             </div>
             
@@ -123,13 +156,31 @@ export default function SignUp() {
                 type="tel" 
                 placeholder="+251 911 000 000" 
                 onChange={e => setFormData({...formData, phone: e.target.value})} 
-                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 text-[15px] placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm" 
+                onKeyDown={handleKeyDown} // <-- ADDED KEYBOARD NAV
+                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 text-[15px] placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm" 
               />
+            </div>
+
+            {/* Become a Host Toggle */}
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3 mt-2">
+              <input 
+                type="checkbox" 
+                id="host-toggle"
+                checked={isHost}
+                onChange={(e) => setIsHost(e.target.checked)}
+                onKeyDown={handleKeyDown} // <-- ADDED KEYBOARD NAV
+                className="mt-1 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+              />
+              <label htmlFor="host-toggle" className="cursor-pointer">
+                <p className="text-sm font-bold text-gray-900">I want to list my car (Become a Host)</p>
+                <p className="text-xs text-gray-500 mt-0.5">Get access to the owner dashboard to publish cars and earn demo money.</p>
+              </label>
             </div>
 
             <button 
               type="submit" 
               disabled={loading}
+              onKeyDown={handleKeyDown} // <-- ADDED KEYBOARD NAV
               className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 mt-2"
             >
               {loading ? "Creating account..." : "Create account"}

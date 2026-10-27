@@ -65,7 +65,7 @@ export default function RenterOverview() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.name.split(" ")[0]}</h1>
-          <p className="text-gray-500 mt-1 text-sm">Here's what's happening with your trips.</p>
+          <p className="text-gray-500 mt-1 text-sm">Here&apos;s what&apos;s happening with your trips.</p>
         </div>
         <Link href="/cars" className="bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
           Explore cars
